@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "WCF 服务测试";
+}
+
+<h1>WCF 服务测试</h1>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">基本数据测试</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">测试基本的数据传输功能</p>
+                    <form asp-action="TestGetData" method="get" class="mb-3">
+                        <div class="input-group">
+                            <input type="number" name="value" class="form-control" value="123" />
+                            <button type="submit" class="btn btn-primary">测试GetData</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">复合类型测试</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">测试复合数据类型的传输</p>
+                    <a asp-action="TestCompositeType" class="btn btn-primary">测试CompositeType</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

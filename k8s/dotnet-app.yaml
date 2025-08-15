@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dotnet-mvc-app
+  namespace: dotnet-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dotnet-mvc-app
+  template:
+    metadata:
+      labels:
+        app: dotnet-mvc-app
+    spec:
+      containers:
+      - name: dotnet-mvc-app
+        image: docker.io/library/dotnet-mvc-app:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: middleware-storage
+          mountPath: /app/data
+          subPath: dotnet-app
+      volumes:
+      - name: middleware-storage
+        persistentVolumeClaim:
+          claimName: middleware-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dotnet-mvc-service
+  namespace: dotnet-test
+spec:
+  selector:
+    app: dotnet-mvc-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dotnet-ingress
+  namespace: dotnet-test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: dotnet.ziyou.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dotnet-mvc-service
+            port:
+              number: 80

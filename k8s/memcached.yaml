@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memcached
+  namespace: dotnet-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memcached
+  template:
+    metadata:
+      labels:
+        app: memcached
+    spec:
+      containers:
+      - name: memcached
+        image: memcached:1.6.33-alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        args:
+          - "-m"
+          - "64"       # 64MB 内存
+          - "-c"
+          - "1024"     # 最大连接数
+          - "-v"       # 调试日志（生产可以去掉）
+        ports:
+        - containerPort: 11211
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "500m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memcached-service
+  namespace: dotnet-test
+spec:
+  selector:
+    app: memcached
+  ports:
+    - protocol: TCP
+      port: 11211
+      targetPort: 11211
+  type: ClusterIP

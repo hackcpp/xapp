@@ -1,0 +1,8 @@
+﻿## .NET Core
+bin/
+obj/
+*.user
+.vs/
+*.swp
+*.*~
+project.lock.json

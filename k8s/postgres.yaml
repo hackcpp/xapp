@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: dotnet-test
+spec:
+  serviceName: postgres-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: docker.io/library/postgres:15-alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "Middleware123"
+        - name: POSTGRES_DB
+          value: "testdb"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: middleware-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+      volumes:
+      - name: middleware-storage
+        persistentVolumeClaim:
+          claimName: middleware-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: dotnet-test
+spec:
+  clusterIP: None
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: dotnet-test
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

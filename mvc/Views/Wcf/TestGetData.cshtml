@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "GetData 测试结果";
+}
+
+<h1>GetData 测试结果</h1>
+
+<div class="container">
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            错误: @ViewBag.Error
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">服务返回结果</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">@ViewBag.Result</p>
+            </div>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">返回</a>
+    </div>
+</div>
