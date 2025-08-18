@@ -1,0 +1,32 @@
+# IDE and editor files
+.vs/
+.idea/
+*.user
+*.suo
+*.cache
+*.swp
+
+# Build outputs
+bin/
+obj/
+*.pdb
+*.dll
+*.exe
+
+# NuGet packages
+packages/
+*.nupkg
+
+# Test results
+TestResults/
+
+# Local development files
+appsettings.Development.json
+
+# Node.js
+node_modules/
+
+# Publish output
+publish/
+*.tar
+Properties/launchSettings.json

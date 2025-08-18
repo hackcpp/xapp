@@ -20,7 +20,7 @@ function remove_old_images() {
 kubectl get -f ../k8s/dotnet-app.yaml &>/dev/null && kubectl delete -f ../k8s/dotnet-app.yaml || true
 remove_old_images
 
-bash ./build_image.sh
+bash ./build_mvc_image.sh
 kubectl apply -f ../k8s/dotnet-app.yaml
 kubectl wait --for=condition=ready pod -l app=${IMAGE_NAME} -n dotnet-test --timeout=300s
 
