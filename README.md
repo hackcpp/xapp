@@ -37,20 +37,10 @@ xapp/
 
 ### 部署步骤
 
-1. 部署共享存储：
-   ```bash
-   kubectl apply -f k8s/shared-storage.yaml
-   
-   sudo mkdir -p /mnt/data/dotnet_mvc/sqlserver
-   sudo mkdir -p /mnt/data/dotnet_mvc/oracle
-   sudo chown -R 10001:0 /mnt/data/dotnet_mvc/sqlserver
-   sudo chown -R 54321:54321 /mnt/data/dotnet_mvc/oracle
-   ```
 
-2. 部署中间件服务：
+1. 部署中间件服务：
 
 - 所有中间件使用统一密码: Middleware123
-- 数据存储使用共享PVC，通过subPath隔离
 
    ```bash
    # MySQL
@@ -76,7 +66,6 @@ xapp/
    - 默认用户名/密码: guest/guest
    - 管理界面端口: 15672 (通过rabbitmq-service访问)
    - AMQP端口: 5672
-   - 数据持久化在共享PVC的rabbitmq子目录
    - 管理界面URL: http://rabbitmq-service.dotnet-test.svc.cluster.local:15672
 
    # ActiveMQ
@@ -84,23 +73,22 @@ xapp/
    - 默认用户名/密码: admin/admin
    - 管理界面端口: 8161 (通过activemq-service访问)
    - 消息端口: 61616
-   - 数据持久化在共享PVC的activemq子目录
    - 管理界面URL: http://activemq-service.dotnet-test.svc.cluster.local:8161
 
    # 部署所有的中间件服务
-   bash ./Scripts/deploy_middleware.sh
+   bash Scripts/deploy_middleware.sh
    ```
 
-3. 构建.NET应用镜像：
+2. 构建.NET应用镜像：
    ```bash
    # 构建API镜像
-   bash ./Scripts/build_api_image.sh
+   bash Scripts/build_api_image.sh
 
    # 构建MVC镜像
-   bash ./Scripts/build_mvc_image.sh
+   bash Scripts/build_mvc_image.sh
    ```
 
-4. 部署.NET应用：
+3. 部署.NET应用：
    ```bash
    kubectl apply -f k8s/dotnet-api.yaml
    kubectl apply -f k8s/dotnet-app.yaml
@@ -128,11 +116,19 @@ bash ./Scripts/update_mvc.sh
 
 ### 访问应用
 1. 通过Ingress访问：
-   ```bash
-   # 确保在本地hosts文件中添加DNS解析
-   # 例如：<集群IP> dotnet.ziyou.com
-   
-   # 获取Ingress IP
-   kubectl get ingress -n dotnet-test
-   ```
-2. 访问地址：http://dotnet.ziyou.com
+    ```bash
+    # 确保在本地hosts文件中添加DNS解析
+    # 例如：<集群IP> dotnet.ziyou.com
+    
+    # 获取Ingress IP和端口
+    kubectl get ingress -n dotnet-test
+    kubectl get svc ingress-nginx-controller -n ingress-nginx
+    
+    # 示例输出：
+    # NAME                       TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+    # ingress-nginx-controller   NodePort   10.104.238.69   <none>        80:30706/TCP,443:31770/TCP   20d
+    ```
+   访问地址：
+   - HTTP: http://dotnet.ziyou.com:30706
+   - HTTPS: https://dotnet.ziyou.com:31770
+   - 直接访问节点: http://<节点IP>:30706 或 https://<节点IP>:31770
