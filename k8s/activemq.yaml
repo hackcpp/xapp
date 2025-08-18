@@ -14,9 +14,13 @@ spec:
       labels:
         app: activemq
     spec:
+      # SecurityContext 保证容器对挂载目录有写权限
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: activemq
-        image: rmohr/activemq:5.16.5
+        image: rmohr/activemq:5.15.9
         imagePullPolicy: IfNotPresent
         env:
         - name: ACTIVEMQ_ADMIN_LOGIN
@@ -32,10 +36,15 @@ spec:
         - name: middleware-storage
           mountPath: /opt/activemq/data
           subPath: activemq
+        - name: activemq-tmp
+          mountPath: /opt/activemq/tmp
       volumes:
       - name: middleware-storage
         persistentVolumeClaim:
           claimName: middleware-pvc
+      - name: activemq-tmp
+        emptyDir: {}
+
 ---
 apiVersion: v1
 kind: Service
