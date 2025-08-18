@@ -9,10 +9,13 @@ namespace test.Controllers
         private readonly ILogger<HttpController> _logger;
         private readonly IHttpClientFactory _clientFactory;
 
-        public HttpController(ILogger<HttpController> logger, IHttpClientFactory clientFactory)
+        private readonly IConfiguration _configuration;
+
+        public HttpController(ILogger<HttpController> logger, IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             _logger = logger;
             _clientFactory = clientFactory;
+            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -184,6 +187,42 @@ namespace test.Controllers
             {
                 results.Add($"Error: {ex.Message}");
                 _logger.LogError(ex, "Error in HttpWebRequest test");
+            }
+
+            ViewBag.Results = results;
+            return View("TestResults");
+        }
+
+        public async Task<IActionResult> TestLocalApi()
+        {
+            var results = new List<string>();
+            try
+            {
+                // 创建自定义HttpClientHandler忽略SSL验证
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+                
+                // 使用自定义handler创建HttpClient
+                var client = new HttpClient(handler);
+                var apiUrl = _configuration["ApiSettings:ServiceUrl"];
+                if (string.IsNullOrEmpty(apiUrl))
+                {
+                    throw new InvalidOperationException("API URL配置缺失，请在appsettings.json中配置ApiSettings:ServiceUrl");
+                }
+                client.BaseAddress = new Uri(apiUrl);
+
+                // 测试天气预测端点
+                results.Add("=== HTTP API 测试 ===");
+                var weatherResponse = await client.GetAsync("/weatherforecast");
+                results.Add($"状态码: {weatherResponse.StatusCode}");
+                results.Add($"响应内容: {await weatherResponse.Content.ReadAsStringAsync()}");
+            }
+            catch (Exception ex)
+            {
+                results.Add($"Error: {ex.Message}");
+                _logger.LogError(ex, "Error in Local API test");
             }
 
             ViewBag.Results = results;

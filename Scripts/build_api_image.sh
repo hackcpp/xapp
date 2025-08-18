@@ -11,7 +11,11 @@ function info() {
 
 function build_image() {
   info "Building Docker image ${IMAGE_NAME}:${CURRENT_TAG}..."
-  docker build -t ${IMAGE_NAME}:${CURRENT_TAG} ../api
+  if [ -d "../api/publish" ]; then
+    docker build -t ${IMAGE_NAME}:${CURRENT_TAG} ../api -f ../api/Dockerfile-dev
+  else
+    docker build -t ${IMAGE_NAME}:${CURRENT_TAG} ../api -f ../api/Dockerfile
+  fi
 }
 
 function save_and_import_image() {
