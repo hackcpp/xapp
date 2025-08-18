@@ -22,14 +22,6 @@ spec:
           value: "Development"
         ports:
         - containerPort: 80
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /app/data
-          subPath: dotnet-app
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service

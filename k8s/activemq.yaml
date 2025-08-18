@@ -14,10 +14,11 @@ spec:
       labels:
         app: activemq
     spec:
-      # SecurityContext 保证容器对挂载目录有写权限
+      # 以 root 身份运行（保证有写权限）
       securityContext:
-        runAsUser: 1000
-        fsGroup: 1000
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: activemq
         image: rmohr/activemq:5.15.9
@@ -33,18 +34,15 @@ spec:
         - name: web
           containerPort: 8161    # Web 控制台端口
         volumeMounts:
-        - name: middleware-storage
-          mountPath: /opt/activemq/data
-          subPath: activemq
         - name: activemq-tmp
           mountPath: /opt/activemq/tmp
+        - name: activemq-data
+          mountPath: /opt/activemq/data
       volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
       - name: activemq-tmp
         emptyDir: {}
-
+      - name: activemq-data
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

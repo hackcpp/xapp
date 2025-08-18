@@ -24,6 +24,4 @@ while true; do
     fi
 done
 
-docker save -o image.tar "$IMAGE"
-sudo ctr -n k8s.io images import image.tar
 

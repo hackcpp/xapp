@@ -26,14 +26,6 @@ spec:
         ports:
         - containerPort: 1521
         - containerPort: 5500
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /opt/oracle/oradata
-          subPath: oracle
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service

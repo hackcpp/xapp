@@ -25,6 +25,7 @@ function save_and_import_image() {
   info "Importing image tar into containerd..."
   sudo ctr -n k8s.io images import ${TAR_FILE}
   rm ${TAR_FILE} -fr
+  docker rmi ${IMAGE_NAME}:${CURRENT_TAG}
 }
 
 build_image

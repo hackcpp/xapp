@@ -25,14 +25,6 @@ spec:
           value: "testdb"
         ports:
         - containerPort: 5432
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /var/lib/postgresql/data
-          subPath: postgres
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service

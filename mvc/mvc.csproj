@@ -5,11 +5,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CS0618;SYSLIB0014</NoWarn>
-
-    <!-- 明确发布输出目录，避免重复嵌套 -->
-    <PublishDir>$(MSBuildProjectDirectory)\publish\</PublishDir>
-    <!-- 编译输出目录（bin） -->
-    <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\net8.0\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -28,14 +28,6 @@ spec:
           containerPort: 5672
         - name: management
           containerPort: 15672
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /var/lib/rabbitmq
-          subPath: rabbitmq
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service

@@ -25,14 +25,6 @@ spec:
           value: "Middleware123!"
         ports:
         - containerPort: 1433
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /var/opt/mssql
-          subPath: sqlserver
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service

@@ -24,14 +24,6 @@ spec:
           value: "Middleware123"
         ports:
         - containerPort: 6379
-        volumeMounts:
-        - name: middleware-storage
-          mountPath: /data
-          subPath: redis
-      volumes:
-      - name: middleware-storage
-        persistentVolumeClaim:
-          claimName: middleware-pvc
 ---
 apiVersion: v1
 kind: Service
