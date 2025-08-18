@@ -27,6 +27,7 @@ kubectl apply -f ../k8s/sqlserver.yaml
 kubectl apply -f ../k8s/rabbitmq.yaml
 kubectl apply -f ../k8s/memcached.yaml
 kubectl apply -f ../k8s/redis.yaml
+kubectl apply -f ../k8s/activemq.yaml
 
 info "Waiting for all middleware pods to be ready..."
 kubectl wait --for=condition=ready pod --all -n dotnet-test --timeout=600s 
