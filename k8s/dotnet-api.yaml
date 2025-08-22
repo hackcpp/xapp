@@ -36,24 +36,3 @@ spec:
       port: 80
       targetPort: 80
   type: ClusterIP
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: dotnet-api-ingress
-#   namespace: dotnet-test
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-# spec:
-#   ingressClassName: nginx
-#   rules:
-#   - host: api.ziyou.com
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: dotnet-api-service
-#             port:
-#               number: 80

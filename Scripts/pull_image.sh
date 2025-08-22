@@ -17,6 +17,7 @@ while true; do
     echo "Trying to pull image: $IMAGE ..."
     if docker pull "$IMAGE"; then
         echo "Successfully pulled $IMAGE"
+        docker save -o /vagrant/images/mssql.tar $IMAGE
         break
     else
         echo "Failed to pull $IMAGE, retrying in $SLEEP_SECONDS seconds..."

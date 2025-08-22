@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-test
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: nginx-test
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log notice;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 1024;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        keepalive_timeout 65;
+
+        # 后端服务器配置
+        upstream backend_servers {
+            server 127.0.0.1:8080;
+            keepalive 32;
+        }
+
+        # dotnet-api服务配置
+        upstream dotnet_api {
+            server dotnet-api-service.dotnet-test.svc.cluster.local:80;
+            keepalive 32;
+        }
+
+        server {
+            listen 80;
+            server_name localhost;
+
+            location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+            }
+
+            # HTTP代理
+            location /proxy/ {
+                proxy_pass http://backend_servers/;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Connection "";
+            }
+
+            # SCGI代理
+            location /scgi/ {
+                scgi_pass 127.0.0.1:9000;
+                include scgi_params;
+                scgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            }
+
+            # dotnet-api代理
+            location /api/ {
+                proxy_pass http://dotnet_api/;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Connection "";
+            }
+
+            # uWSGI代理
+            location /uwsgi/ {
+                uwsgi_pass 127.0.0.1:8000;
+                include uwsgi_params;
+                uwsgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            }
+
+            # gRPC代理
+            location /grpc {
+                grpc_pass grpc://127.0.0.1:50051;
+                grpc_set_header Content-Type application/grpc;
+                grpc_set_header X-Real-IP $remote_addr;
+            }
+
+            error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+                root /usr/share/nginx/html;
+            }
+        }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-app
+  namespace: nginx-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-app
+  template:
+    metadata:
+      labels:
+        app: nginx-app
+    spec:
+      containers:
+      - name: nginx-app
+        image: docker.io/library/nginx-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx-test
+spec:
+  selector:
+    app: nginx-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: nginx-test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nginx.ziyou.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80

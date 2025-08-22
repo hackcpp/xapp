@@ -19,12 +19,10 @@ function build_image() {
 }
 
 function save_and_import_image() {
-  info "Saving image ${IMAGE_NAME}:${CURRENT_TAG} to ${TAR_FILE}..."
-  docker save -o ${TAR_FILE} ${IMAGE_NAME}:${CURRENT_TAG}
-
-  info "Importing image tar into containerd..."
-  sudo ctr -n k8s.io images import ${TAR_FILE}
-  rm ${TAR_FILE} -fr
+  info "Saving and importing image ${IMAGE_NAME}:${CURRENT_TAG} directly to containerd..."
+  docker save ${IMAGE_NAME}:${CURRENT_TAG} | sudo ctr -n k8s.io images import -
+  
+  info "Removing local image..."
   docker rmi ${IMAGE_NAME}:${CURRENT_TAG}
 }
 

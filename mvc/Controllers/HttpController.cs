@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Text;
 
 namespace test.Controllers
 {
@@ -36,25 +35,21 @@ namespace test.Controllers
                 
                 // 使用自定义handler创建HttpClient
                 var client = new HttpClient(handler);
+                var apiUrl = _configuration["ApiSettings:ServiceUrl"];
+                if (string.IsNullOrEmpty(apiUrl))
+                {
+                    throw new InvalidOperationException("API URL配置缺失，请在appsettings.json中配置ApiSettings:ServiceUrl");
+                }
+                client.BaseAddress = new Uri(apiUrl);
                 
                 // GET 请求测试
-                var response = await client.GetAsync("https://postman-echo.com/get");
+                var response = await client.GetAsync("/api/weatherforecast");
                 results.Add($"GET请求状态: {response.StatusCode}");
                 var content = await response.Content.ReadAsStringAsync();
                 results.Add($"GET响应内容: {content}\n");
 
-                // POST 请求测试
-                var postData = new StringContent(
-                    "{ \"test\": \"Hello from HttpClient\" }", 
-                    Encoding.UTF8, 
-                    "application/json");
-                response = await client.PostAsync("https://postman-echo.com/post", postData);
-                results.Add($"POST请求状态: {response.StatusCode}");
-                content = await response.Content.ReadAsStringAsync();
-                results.Add($"POST响应内容: {content}\n");
-
                 // Headers 测试
-                var request = new HttpRequestMessage(HttpMethod.Get, "https://postman-echo.com/headers");
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/weatherforecast");
                 request.Headers.Add("X-Custom-Header", "Test Value");
                 response = await client.SendAsync(request);
                 results.Add($"Headers测试状态: {response.StatusCode}");
@@ -76,8 +71,14 @@ namespace test.Controllers
             var results = new List<string>();
             try
             {
+                var apiUrl = _configuration["ApiSettings:ServiceUrl"];
+                if (string.IsNullOrEmpty(apiUrl))
+                {
+                    throw new InvalidOperationException("API URL配置缺失，请在appsettings.json中配置ApiSettings:ServiceUrl");
+                }
+                
                 // GET 请求测试
-                var request = WebRequest.Create("https://postman-echo.com/get") as HttpWebRequest;
+                var request = WebRequest.Create($"{apiUrl}/api/weatherforecast") as HttpWebRequest;
                 if (request is null)
                 {
                     results.Add("Error: Failed to create HttpWebRequest for GET.");
@@ -103,52 +104,8 @@ namespace test.Controllers
                     }
                 }
 
-                // POST 请求测试
-                request = WebRequest.Create("https://postman-echo.com/post") as HttpWebRequest;
-                if (request is null)
-                {
-                    results.Add("Error: Failed to create HttpWebRequest for POST.");
-                    ViewBag.Results = results;
-                    return View("TestResults");
-                }
-                request.Method = "POST";
-                request.ContentType = "application/json";
-                
-                var postData = "{ \"test\": \"Hello from HttpWebRequest\" }";
-                var bytes = Encoding.UTF8.GetBytes(postData);
-                
-                using (var stream = await request.GetRequestStreamAsync())
-                {
-                    await stream.WriteAsync(bytes, 0, bytes.Length);
-                }
-
-                using (var response = await request.GetResponseAsync() as HttpWebResponse)
-                {
-                    if (response != null)
-                    {
-                        results.Add($"POST请求状态: {response.StatusCode}");
-                        var postStream = response.GetResponseStream();
-                        if (postStream == null)
-                        {
-                            results.Add("Error: Response stream is null");
-                        }
-                        else
-                        {
-                            using (var reader = new StreamReader(postStream))
-                            {
-                                var content = await reader.ReadToEndAsync();
-                                results.Add($"POST响应内容: {content}\n");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        results.Add("Error: POST response is null.");
-                    }
-                }
-
                 // Headers 测试
-                request = WebRequest.Create("https://postman-echo.com/headers") as HttpWebRequest;
+                request = WebRequest.Create($"{apiUrl}/api/weatherforecast") as HttpWebRequest;
                 if (request is null)
                 {
                     results.Add("Error: Failed to create HttpWebRequest for Headers test.");
@@ -193,40 +150,5 @@ namespace test.Controllers
             return View("TestResults");
         }
 
-        public async Task<IActionResult> TestLocalApi()
-        {
-            var results = new List<string>();
-            try
-            {
-                // 创建自定义HttpClientHandler忽略SSL验证
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                };
-                
-                // 使用自定义handler创建HttpClient
-                var client = new HttpClient(handler);
-                var apiUrl = _configuration["ApiSettings:ServiceUrl"];
-                if (string.IsNullOrEmpty(apiUrl))
-                {
-                    throw new InvalidOperationException("API URL配置缺失，请在appsettings.json中配置ApiSettings:ServiceUrl");
-                }
-                client.BaseAddress = new Uri(apiUrl);
-
-                // 测试天气预测端点
-                results.Add("=== HTTP API 测试 ===");
-                var weatherResponse = await client.GetAsync("/weatherforecast");
-                results.Add($"状态码: {weatherResponse.StatusCode}");
-                results.Add($"响应内容: {await weatherResponse.Content.ReadAsStringAsync()}");
-            }
-            catch (Exception ex)
-            {
-                results.Add($"Error: {ex.Message}");
-                _logger.LogError(ex, "Error in Local API test");
-            }
-
-            ViewBag.Results = results;
-            return View("TestResults");
-        }
     }
 }
